@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>Sturm und Drang leren</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Source+Sans+3:wght@400;600;700&family=UnifrakturCook:wght@700&display=swap">
+<style>
+/* Layout: schoolmap met tabbladen. Geel = de map, blauw handschrift = de eigen pennotities. */
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --fg: #1a2330;
+  --muted: #566274;
+  --line: #d3dae3;
+  --pen: #2a34b5;
+  --pen-soft: #e7e9fb;
+  --folder: #f5cc1f;
+  --on-folder: #1a2330;
+  --display: "UnifrakturCook", "Times New Roman", serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --hand: "Kalam", "Segoe Print", "Comic Sans MS", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141a23; --surface: #1d2531; --fg: #e8ecf2; --muted: #a1adbd; --line: #333e4e;
+    --pen: #aab2ff; --pen-soft: #272d55; --folder: #f5cc1f; --on-folder: #1a2330; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141a23; --surface: #1d2531; --fg: #e8ecf2; --muted: #a1adbd; --line: #333e4e;
+  --pen: #aab2ff; --pen-soft: #272d55; --folder: #f5cc1f; --on-folder: #1a2330; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 17px; line-height: 1.55;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--folder);
+}
+.wrap {
+  max-width: 860px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header { padding-block: 28px 16px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2.6rem, 9vw, 4rem); line-height: 1.05; margin: 0; }
+.intro { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: .95rem; }
+
+nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--folder); }
+.tabs { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; }
+.tabs button {
+  flex: 0 0 auto; border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer;
+  background: transparent; color: var(--on-folder); font: 600 1rem var(--body);
+}
+.tabs button[aria-selected="true"] { background: var(--on-folder); color: #fff; }
+.tabs button:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+
+main { padding-block: 24px 64px; }
+section[role="tabpanel"] { display: grid; gap: 28px; }
+.block { display: grid; gap: 10px; min-width: 0; }
+h2 { font-size: 1.5rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-size: 1.1rem; margin: 6px 0 0; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+
+.note { font-family: var(--hand); color: var(--pen); font-size: 1.04em; line-height: 1.4; }
+ul .note::marker { color: var(--pen); }
+.notebox { background: var(--pen-soft); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; }
+.notebox h3 { font-family: var(--body); color: var(--pen); margin: 0; font-size: 1rem; }
+.mark { background: var(--folder); color: var(--on-folder); padding: 0 .25em; border-radius: 2px; }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pane { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.pane h3 { margin: 0; }
+@media (max-width: 620px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+.scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: .98rem; }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { color: var(--muted); font-size: .85rem; letter-spacing: .03em; text-transform: uppercase; }
+td.num, td:first-child { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+td.wrap-cell { white-space: normal; }
+
+.steps { list-style: none; padding: 0; gap: 0; }
+.steps li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 0; }
+.steps b { font-variant-numeric: tabular-nums; }
+
+.quiz-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.count { font-weight: 700; font-variant-numeric: tabular-nums; }
+.meter { flex: 1 1 160px; height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--folder); transition: width .2s; }
+.plain { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 6px; padding: 6px 12px; font: 600 .95rem var(--body); cursor: pointer; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+.q summary { cursor: pointer; font-weight: 600; }
+.q .a { margin-top: 8px; display: grid; gap: 8px; }
+.q label { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); cursor: pointer; font-size: .95rem; }
+.q.done summary { color: var(--muted); }
+.qlist { display: grid; gap: 8px; }
+@media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Sturm und Drang</h1>
+    <p class="intro">Goethe, Schiller en Lenz: alles van je blaadjes, per onderwerp. Werk de tabbladen van links naar rechts af en sluit af met Overhoren.</p>
+    <div class="legend">
+      <span class="note">Blauw handschrift = jouw eigen notitie</span>
+      <span><span class="mark">Geel</span> = jij noteerde dit voor de toets</span>
+    </div>
+  </header>
+</div>
+
+<nav aria-label="Onderwerpen">
+  <div class="wrap">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-overzicht" aria-controls="overzicht" aria-selected="true">Overzicht</button>
+      <button role="tab" id="t-goethe" aria-controls="goethe" aria-selected="false">Goethe</button>
+      <button role="tab" id="t-gedichten" aria-controls="gedichten" aria-selected="false">Gedichten</button>
+      <button role="tab" id="t-schiller" aria-controls="schiller" aria-selected="false">Schiller &amp; Lenz</button>
+      <button role="tab" id="t-overhoren" aria-controls="overhoren" aria-selected="false">Overhoren</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="overzicht" role="tabpanel" aria-labelledby="t-overzicht">
+  <div class="block">
+    <h2>Wat is Sturm und Drang?</h2>
+    <p>Jonge schrijvers die in opstand komen tegen regels, adel en verstand. Ze kiezen voor gevoel, natuur en vrijheid. De mens is vrij en schepper van zijn eigen wereld.</p>
+    <div class="cols">
+      <div class="pane">
+        <h3>Waar ze tegen zijn</h3>
+        <ul>
+          <li class="note">adel</li>
+          <li class="note">hofcultuur</li>
+          <li class="note">absolutisme</li>
+          <li class="note">Verlichting (Herder)</li>
+          <li>vaste regels, zoals de klassieke Franse tragedie</li>
+          <li>dwang in de opvoeding (Rousseau)</li>
+        </ul>
+      </div>
+      <div class="pane">
+        <h3>Waar ze voor zijn</h3>
+        <ul>
+          <li>sterke gevoelens en emotie</li>
+          <li>de band tussen het lyrische ik en de natuur</li>
+          <li>vrijheid</li>
+          <li>het creatieve genie</li>
+          <li>volkspoëzie</li>
+          <li>Homerus en Shakespeare als voorbeeld</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Wat jij voor de toets noteerde</h2>
+    <div class="notebox">
+      <p class="note"><span class="mark">"Und Sterbliche sind Göttern gleich"</span> = kenmerk van Sturm und Drang, zo op toets herkennen.</p>
+      <p class="note">Waarom dit eigenlijk niet kan in deze periode: 1. stervelingen en goden kunnen niet gelijk zijn, goden staan boven stervelingen. 2. twijfel aan het bestaan van God.</p>
+      <p class="note"><span class="mark">Werther: boek kennen.</span> Is het autobiografisch? Deels, over Charlotte wel, maar zelfmoord niet.</p>
+      <p class="note">Willkommen und Abschied: is het autobiografisch? Aanleiding van de tekst! Voor wie?</p>
+      <p class="note">Goethe: hoe zijn leven loopt en waarom hij Sturm und Drang aanhoudt.</p>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Wie is wie?</h2>
+    <div class="scroll">
+      <table>
+        <tr><th>Wie</th><th>Kernwoord</th><th>Onthoud</th></tr>
+        <tr><td>Rousseau</td><td class="wrap-cell">Dwang</td><td class="wrap-cell">Kritiek op de opvoeding: de mens wordt geketend door instituties.</td></tr>
+        <tr><td>Kant</td><td class="wrap-cell">Algemene wet</td><td class="wrap-cell">Categorische imperatief: handel zo dat jouw regel voor iedereen kan gelden.</td></tr>
+        <tr><td>Herder</td><td class="wrap-cell note">oprichter, tegen Verlichting</td><td class="wrap-cell">Inspirator van de jonge Goethe. Gevoel, genie en volkspoëzie.</td></tr>
+        <tr><td>Goethe</td><td class="wrap-cell note">gevoel en natuurelementen</td><td class="wrap-cell">Het gevoelsgenie. Werther, Prometheus, Erlkönig.</td></tr>
+        <tr><td>Schiller</td><td class="wrap-cell note">vrijheid</td><td class="wrap-cell">Die Räuber, theater als opvoeding, An die Freude.</td></tr>
+        <tr><td>Lenz</td><td class="wrap-cell note">kan niet bij de grootheden horen</td><td class="wrap-cell">Der Hofmeister. Contact met Goethe verbroken.</td></tr>
+        <tr><td>Mozart</td><td class="wrap-cell">Zauberflöte</td><td class="wrap-cell">"Stervelingen zijn goden gelijk."</td></tr>
+        <tr><td>C.P.E. Bach</td><td class="wrap-cell">Vernieuwer</td><td class="wrap-cell">Voorloper van de romantische muziek van Beethoven.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Tijdlijn</h2>
+    <ul class="steps">
+      <li><b>1749</b><span>Goethe geboren in Frankfurt</span></li>
+      <li><b>1759</b><span>Schiller geboren in Marbach am Neckar</span></li>
+      <li><b>1765–1768</b><span>Goethe studeert rechten in Leipzig, wordt ziek</span></li>
+      <li><b>1770</b><span>Goethe rondt zijn studie af in Straatsburg en ontmoet Herder</span></li>
+      <li><b>1771</b><span>Mailied, Zum Shakespeares Tag. Lenz ontmoet Goethe</span></li>
+      <li><b>1774</b><span>Werther, Prometheus, Der Hofmeister (Lenz)</span></li>
+      <li><b>1775</b><span>Goethe naar Weimar</span></li>
+      <li><b>1776</b><span>Lenz volgt Goethe naar Weimar</span></li>
+      <li><b>1782</b><span>Die Räuber in première in Mannheim</span></li>
+      <li><b>1784</b><span>Kabale und Liebe</span></li>
+      <li><b>±1785</b><span>Latere versie Willkommen und Abschied. Schiller bij Körner in Leipzig</span></li>
+      <li><b>1786</b><span>An die Freude</span></li>
+      <li><b>1787</b><span>Schiller bezoekt Weimar en ontmoet Goethe</span></li>
+      <li><b>1791</b><span>Die Zauberflöte (Mozart)</span></li>
+      <li><b>1805</b><span>Schiller overleden</span></li>
+      <li><b>1832</b><span>Goethe overleden</span></li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h2>Achtergrond in het kort</h2>
+    <div class="cols">
+      <div class="pane">
+        <h3>Herder en Shakespeare</h3>
+        <ul>
+          <li>Volkspoëzie is de natuurlijke uitdrukking van wat de mens diep beweegt.</li>
+          <li>Goethe wijst in Zum Shakespeares Tag de klassieke Franse tragedie af.</li>
+          <li>Hij breekt met de eenheid van tijd, plaats en handeling en met de Ständeklausel.</li>
+          <li class="note">Hier had je een vraagteken gezet.</li>
+        </ul>
+      </div>
+      <div class="pane">
+        <h3>Maatschappijkritiek</h3>
+        <ul>
+          <li>Oude hofcultuur raakt in verval, burgers beheersen steeds meer het economische leven.</li>
+          <li>Niet alleen Erlebnislyrik (<span class="note">belevenis/ervaring</span>), maar vooral maatschappijkritiek.</li>
+          <li>Duidelijk bij Schiller en Lenz.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="notebox">
+      <h3>Lyrisch ik</h3>
+      <p class="note">De gevoelens/uiting van de schrijver zelf (dat niemand anders zo kan doen).</p>
+    </div>
+  </div>
+</section>
+
+<section id="goethe" role="tabpanel" aria-labelledby="t-goethe" hidden>
+  <div class="block">
+    <h2>Zijn leven in stappen</h2>
+    <ul class="steps">
+      <li><b>Leipzig</b><span>Studeert rechten, vindt geen rust tussen verstand en emotie. <span class="note">Rechten tegen emoties, kan niet samen.</span></span></li>
+      <li><b>Thuis</b><span>Wordt lichamelijk ziek en herstelt in twee jaar in Frankfurt.</span></li>
+      <li><b>Straatsburg</b><span>Studie af, ontmoet Herder, leest Homerus en Shakespeare. Echt kunstenaarschap is geen regels volgen, maar het creatieve genie ontwikkelen.</span></li>
+      <li><b>Liefdes</b><span>Friederike Brion, Charlotte Buff, Lilli Schönemann (verloving verbroken).</span></li>
+      <li><b>Weimar</b><span>In 1775 uitgenodigd door hertog Carl August. Hij wordt rustiger en de Klassik begint.</span></li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h2>Friederike Brion</h2>
+    <ul>
+      <li>Goethe leert haar kennen in Straßburg. Ze schrijven hartstochtelijke brieven en hij beschildert een lint voor haar.</li>
+      <li class="note">Hij schrijft veel liefdesbrieven.</li>
+      <li class="note">Sesenheimer Lieder: bundel van liefdesbrieven naar Friederike.</li>
+      <li>Uit angst voor een vaste relatie gaat hij terug naar Frankfurt om advocaat te worden, zonder te zeggen dat hij niet terugkomt.</li>
+      <li class="note">Goethe gaat twijfelen of hij met haar wil zijn of vrij, net als toen hij twijfelde over rechten studeren.</li>
+      <li class="note">Op het einde maakt hij het uit.</li>
+      <li>Friederike heeft liefdesverdriet. Haar zus verbrandt alle brieven.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h2>Die Leiden des jungen Werther (1774)</h2>
+    <p class="note"><span class="mark">Boek kennen.</span></p>
+    <div class="cols">
+      <div class="pane">
+        <h3>Inhoud</h3>
+        <ul>
+          <li>Briefroman: Werther schrijft aan zijn vriend Wilhelm.</li>
+          <li>Hij houdt van Lotte, die verloofd is met Albert.</li>
+          <li>Hij wordt steeds somberder en maakt een eind aan zijn leven.</li>
+          <li>De held is een gewone jongen uit de burgerij.</li>
+        </ul>
+      </div>
+      <div class="pane">
+        <h3>Waar komt het vandaan?</h3>
+        <ul>
+          <li>Onbeantwoorde liefde voor de verloofde Charlotte Buff.</li>
+          <li>De zelfmoord van de zoon van een goede vriend.</li>
+          <li>Opnieuw de buitengesloten derde in een liefdesrelatie.</li>
+          <li class="note">Autobiografisch? Deels, over Charlotte wel, maar zelfmoord niet.</li>
+        </ul>
+      </div>
+    </div>
+    <p>Genre: ervarings- en bekentenisliteratuur. Jongeren volgden Werther na, ook in blauw rokkostuum en geel vest. Daarom kwam de waarschuwing: "Wees een man, en doe mij niet na."</p>
+  </div>
+
+  <div class="block">
+    <h2>Prometheus</h2>
+    <ul>
+      <li>Griekse halfgod die het vuur van de goden stal en zichzelf als schepper zag.</li>
+      <li>Straf: een adelaar pikt dagelijks zijn lever uit.</li>
+      <li>Goethe ziet zichzelf als bevrijder uit knellende, verouderde sociale banden.</li>
+      <li class="note">Goethe ziet zichzelf terug.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="gedichten" role="tabpanel" aria-labelledby="t-gedichten" hidden>
+  <div class="block">
+    <h2>Erlkönig</h2>
+    <p class="note">Erlkönig = de dood, duister figuur, kinderlokker. Hij verleidt het kind om zich over te geven.</p>
+    <div class="scroll">
+      <table>
+        <tr><th>Strofe</th><th>Wat gebeurt er? (jouw notities)</th></tr>
+        <tr><td>1</td><td class="wrap-cell note">Hij houdt zijn kind bij zich.</td></tr>
+        <tr><td>2</td><td class="wrap-cell note">Kind is angstig, vader luistert.</td></tr>
+        <tr><td>3</td><td class="wrap-cell note">Erlkönig verleidt de jongen met spelletjes en bloemen op het strand.</td></tr>
+        <tr><td>4</td><td class="wrap-cell note">Kind vraagt of vader het ook hoort, vader zegt rustig, rustig.</td></tr>
+        <tr><td>5</td><td class="wrap-cell note">Erlkönig probeert hem verder te verleiden met dansen en zijn dochter.</td></tr>
+        <tr><td>6</td><td class="wrap-cell note">Jongen vraagt of vader het ziet. Vader zegt dat hij het ziet, maar hij ziet de natuur.</td></tr>
+        <tr><td>7</td><td class="wrap-cell note">Erlkönig gaat geweld gebruiken. Kind zegt dat de Erlkönig hem pakt.</td></tr>
+        <tr><td>8</td><td class="wrap-cell note">Vader heeft het door en gaat sneller, maar het kind gaat dan net dood.</td></tr>
+      </table>
+    </div>
+    <div class="notebox">
+      <h3>De kern</h3>
+      <p class="note">Het jongetje blijft zeggen dat de dood hem komt halen, de vader blijft zeggen dat het de natuur is. De vader gelooft zijn kind niet (in de moderne tijd ook zo). Het kind is slachtoffer en angstig.</p>
+    </div>
+    <div class="cols">
+      <div class="pane">
+        <h3>Mythische lezing</h3>
+        <p class="note">Erlkönig komt hem halen.</p>
+      </div>
+      <div class="pane">
+        <h3>Reële lezing</h3>
+        <p class="note">Het kind is ziek (daarom gaat hij naar de dokter op het paard), maar hij wordt steeds zieker tijdens de reis.</p>
+      </div>
+    </div>
+    <p>De stof komt uit het Deens: Ellerkonge, dus Elfenkönig.</p>
+  </div>
+
+  <div class="block">
+    <h2>Willkommen und Abschied</h2>
+    <p class="note">Titel: ontmoeting en afscheid voor altijd. Liefde, afscheid, kunnen uitleggen.</p>
+    <div class="scroll">
+      <table>
+        <tr><th>Strofe</th><th>Thema</th><th>Let op</th></tr>
+        <tr><td>1</td><td class="note">angsten, natuur</td><td class="wrap-cell note">Personificatie: "Der Abend wiegte", een rustige avond, de avond treedt langzaam in. Riese = angst.</td></tr>
+        <tr><td>2</td><td class="note">angsten, natuur</td><td class="wrap-cell note">Mond = maan, personificatie: die kan niet klagen. Winde: het waait zacht. "Doch frisch und fröhlich" = vrolijk. "In meinen Adern welches Feuer" = lyrisch ik: waar en wat beleeft het?</td></tr>
+        <tr><td>3</td><td class="note">ontmoeting, lust</td><td class="wrap-cell">Hij ziet haar: vreugde, liefde en tederheid.</td></tr>
+        <tr><td>4</td><td class="note">afscheid, verdriet</td><td class="wrap-cell note">Götter = goden. De morgen brengt het afscheid.</td></tr>
+      </table>
+    </div>
+    <p class="note">Natuurelementen om gevoel te beschrijven. Rijmschema: hier stond een vraagteken.</p>
+    <div class="notebox">
+      <h3>Waarom is het 's nachts?</h3>
+      <ul>
+        <li class="note">Ze ontmoeten elkaar 's nachts, want de nacht wordt verheerlijkt (kenmerk).</li>
+        <li class="note">Er is een verbod om dit soort werken te schrijven, maar 's nachts wordt niet gecontroleerd.</li>
+        <li class="note">Ze hebben overdag een baan.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Spieluhr (Rammstein)</h2>
+    <p class="note">Overeenkomsten met Erlkönig:</p>
+    <div class="scroll">
+      <table>
+        <tr><th>In het lied</th><th>Jouw notitie</th></tr>
+        <tr><td>kleiner Mensch</td><td class="note">kleine mens</td></tr>
+        <tr><td>Winternacht</td><td class="note">nacht</td></tr>
+        <tr><td>Herz schlägt nicht mehr</td><td class="note">dood</td></tr>
+        <tr><td>hoppe hoppe Reiter</td><td class="note">paard</td></tr>
+      </table>
+    </div>
+    <p class="note">Ook hier natuurelementen.</p>
+  </div>
+
+  <div class="block">
+    <h2>Overeenkomsten tussen de gedichten</h2>
+    <div class="notebox">
+      <ul>
+        <li class="note">Allebei natuurelementen</li>
+        <li class="note">In de nacht</li>
+        <li class="note">Paard (ritme is het galop)</li>
+        <li class="note">Emoties (verdriet)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="schiller" role="tabpanel" aria-labelledby="t-schiller" hidden>
+  <div class="block">
+    <h2>Schiller</h2>
+    <p class="note">Vrijheid</p>
+    <ul>
+      <li>Moet tegen zijn wil naar de militaire academie onder de absolutistische hertog Karl Eugen.</li>
+      <li>Voelt zich wereldburger en wil nooit een vorst dienen.</li>
+      <li>Schrijft 's nachts bij kaarslicht in het geheim aan Die Räuber.</li>
+      <li>In 1787 naar Weimar, later bevriend met Goethe. Begin van de Klassik.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h2>Die Räuber (1782)</h2>
+    <ul>
+      <li>Thema: verzet tegen onderdrukking en onvrijheid bij de opvoeding.</li>
+      <li>Première op 13 januari 1782 in Mannheim, het publiek is razend enthousiast.</li>
+      <li>De hertog niet: het verlangen naar vrijheid en de kritiek op de willekeur van vorsten zijn hem een doorn in het oog.</li>
+    </ul>
+    <p>Don Carlos heb je doorgestreept, dus dat staat hier niet.</p>
+  </div>
+
+  <div class="block">
+    <h2>Schiller en het toneel</h2>
+    <ul>
+      <li>Theater is een middel om de burgerij te onderwijzen en te "genezen".</li>
+      <li>Lezing: Die Schaubühne als eine moralische Anstalt betrachtet.</li>
+      <li class="note">Mensen worden opgevoed om het probleem op te lossen/veranderen.</li>
+      <li>Kabale und Liebe (1784): generatieconflict.</li>
+    </ul>
+  </div>
+
+  <div class="block">
+    <h2>An die Freude</h2>
+    <ul class="steps">
+      <li><b>1785</b><span>Schiller woont twee jaar bij zijn beste vriend Körner in Leipzig en schrijft daar de ode.</span></li>
+      <li><b>Körner</b><span>Zet de ode meteen op muziek, nog vóór Beethoven. <span class="note">Schiller niet alleen geschreven, ook Körner.</span></span></li>
+      <li><b>1823–1824</b><span>Beethoven bewerkt de tekst voor zijn 9e symfonie: strofen 1 en 3 volledig, delen van 2 en 4.</span></li>
+      <li><b>Nu</b><span>Volkslied van de EU, instrumentaal bewerkt door Karajan.</span></li>
+    </ul>
+    <p>De eerste strofe heb je omkaderd: "Freude, schöner Götterfunken, Tochter aus Elysium…"</p>
+  </div>
+
+  <div class="block">
+    <h2>Lenz (1751–1792)</h2>
+    <p class="note">Hij kan niet bij de grootheden horen.</p>
+    <ul>
+      <li>Leert Goethe in 1771 kennen, bewondert hem en volgt hem in 1776 naar Weimar.</li>
+      <li>Moet Weimar snel verlaten om onbekende reden. Goethe noemt het "Lenzens Eselei" en verbreekt het contact.</li>
+      <li>Een jaar later een geestelijke inzinking. Hij zwerft rond en sterft jong in Moskou.</li>
+      <li>Der Hofmeister (1774): de leraar Läuffer maakt aan een hof een meisje zwanger, gaat daaraan ten onder en castreert zichzelf.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="overhoren" role="tabpanel" aria-labelledby="t-overhoren" hidden>
+  <div class="block">
+    <h2>Overhoor jezelf</h2>
+    <p>Bedenk eerst zelf het antwoord en open dan de vraag. Vink aan wat je wist, dan zie je wat je nog moet herhalen.</p>
+    <div class="quiz-top">
+      <span class="count" id="count">0 van 0 gekend</span>
+      <div class="meter"><i id="bar"></i></div>
+      <button class="plain" id="reset" type="button">Opnieuw beginnen</button>
+    </div>
+  </div>
+  <div class="block" id="quiz"></div>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var questions = [
+    ["Sturm und Drang", "Waar was Sturm und Drang tegen?", "Adel, hofcultuur en absolutisme. Herder was ook tegen de eenzijdigheid van de Verlichting."],
+    ["Sturm und Drang", "Wat betekent 'lyrisch ik' volgens jouw notitie?", "De gevoelens/uiting van de schrijver zelf (dat niemand anders zo kan doen)."],
+    ["Sturm und Drang", "Waarom kon 'Sterbliche sind Göttern gleich' eigenlijk niet in deze periode?", "1. Stervelingen en goden kunnen niet gelijk zijn, goden staan boven stervelingen. 2. Twijfel aan het bestaan van God."],
+    ["Sturm und Drang", "Wat is Erlebnislyrik?", "Poëzie over hoogst persoonlijke ervaringen op het gebied van natuur en liefde (belevenis/ervaring)."],
+    ["Sturm und Drang", "Wat vond Herder van volkspoëzie?", "De natuurlijke en ongekunstelde uitdrukking van wat de mens ten diepste beweegt."],
+    ["Sturm und Drang", "Waar kritiseert Rousseau de opvoeding om?", "De mens leeft van geboorte tot dood in dwang. Kinderen worden al ingebonden met banden en windsels."],
+    ["Goethe", "Waarom hield Goethe het niet vol in Leipzig?", "Hij werd heen en weer geslingerd tussen verstand en emoties. Rechten en emoties kunnen niet samen, en hij werd er lichamelijk ziek van."],
+    ["Goethe", "Wat veranderde er door Herder voor Goethe?", "Hij raakte ervan overtuigd dat echt kunstenaarschap niet draait om regels, maar om het creatieve genie."],
+    ["Goethe", "Waarom verliet Goethe Friederike?", "Angst voor een vaste relatie. Hij twijfelde of hij met haar wilde zijn of vrij, net als bij rechten studeren."],
+    ["Goethe", "Wat zijn de Sesenheimer Lieder?", "Een bundel van liefdesbrieven naar Friederike (jouw notitie)."],
+    ["Goethe", "Is Werther autobiografisch?", "Deels: over Charlotte wel, maar de zelfmoord niet."],
+    ["Goethe", "Waarom zette Goethe 'Wees een man, en doe mij niet na' in het boek?", "Omdat mensen Werther na gingen doen, ook de zelfmoord."],
+    ["Goethe", "Waarin ziet Goethe zichzelf in Prometheus terug?", "Als schepper en bevrijder uit knellende, verouderde sociale banden."],
+    ["Goethe", "Waarom verloor Goethe in Weimar zijn wilde Sturm und Drang?", "Door zijn binding aan en afhankelijkheid van het hof van Carl August kwam hij in rustiger vaarwater. Daar begint de Klassik."],
+    ["Gedichten", "Wie is de Erlkönig?", "De dood, een duister figuur en kinderlokker die het kind verleidt om zich over te geven."],
+    ["Gedichten", "Wat is de kern van Erlkönig?", "Het jongetje zegt dat de dood hem komt halen, de vader zegt dat het de natuur is. De vader gelooft zijn kind niet."],
+    ["Gedichten", "Wat zijn de twee lezingen van Erlkönig?", "Mythisch: Erlkönig komt hem halen. Reëel: het kind is ziek en wordt op weg naar de dokter steeds zieker."],
+    ["Gedichten", "Hoe probeert de Erlkönig het kind te krijgen?", "Eerst met spelletjes en bloemen, dan met dansen en zijn dochter, en ten slotte met geweld."],
+    ["Gedichten", "Waarom is het 's nachts in Willkommen und Abschied?", "De nacht wordt verheerlijkt (kenmerk), er is een verbod maar 's nachts wordt niet gecontroleerd, en ze hebben overdag een baan."],
+    ["Gedichten", "Hoe is Willkommen und Abschied opgebouwd?", "Strofen 1–2 angsten en natuur, strofe 3 ontmoeting en lust, strofe 4 afscheid en verdriet."],
+    ["Gedichten", "Welke overeenkomsten hebben de gedichten?", "Natuurelementen, de nacht, het paard (ritme is het galop) en emoties (verdriet)."],
+    ["Gedichten", "Wat komt in Spieluhr overeen met Erlkönig?", "Een kleine mens, de nacht, de dood, het paard en natuurelementen."],
+    ["Schiller en Lenz", "Waar gaat Die Räuber over?", "Verzet tegen onderdrukking en onvrijheid bij de opvoeding."],
+    ["Schiller en Lenz", "Hoe reageerden publiek en hertog op Die Räuber?", "Het publiek was razend enthousiast. Voor de hertog waren de vrijheidsdrang en de kritiek op vorsten een doorn in het oog."],
+    ["Schiller en Lenz", "Wat was volgens Schiller de functie van theater?", "De burgerij onderwijzen en genezen. Mensen worden opgevoed om het probleem op te lossen/veranderen."],
+    ["Schiller en Lenz", "Wie zette An die Freude als eerste op muziek?", "Körner, nog vóór Beethoven."],
+    ["Schiller en Lenz", "Waarom past 'kan niet bij de grootheden horen' bij Lenz?", "Hij bewonderde Goethe en volgde hem naar Weimar, maar moest snel weg en Goethe verbrak het contact."],
+    ["Schiller en Lenz", "Waar gaat Der Hofmeister over?", "De leraar Läuffer maakt aan een hof een meisje zwanger, gaat daaraan ten onder en castreert zichzelf."]
+  ];
+
+  var KEY = "sd-gekend";
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(known)); } catch (e) {}
+  }
+  var known = load();
+
+  var quiz = document.getElementById("quiz");
+  var groups = {};
+  questions.forEach(function (item, i) {
+    if (!groups[item[0]]) {
+      var h = document.createElement("h3");
+      h.textContent = item[0];
+      var list = document.createElement("div");
+      list.className = "qlist";
+      quiz.appendChild(h);
+      quiz.appendChild(list);
+      groups[item[0]] = list;
+    }
+    var box = document.createElement("details");
+    box.className = "q";
+    var sum = document.createElement("summary");
+    sum.textContent = item[1];
+    var ans = document.createElement("div");
+    ans.className = "a";
+    var text = document.createElement("p");
+    text.textContent = item[2];
+    var lab = document.createElement("label");
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    check.id = "q" + i;
+    check.checked = !!known[i];
+    lab.appendChild(check);
+    lab.appendChild(document.createTextNode("Dit wist ik"));
+    check.addEventListener("change", function () {
+      if (check.checked) { known[i] = 1; } else { delete known[i]; }
+      box.classList.toggle("done", check.checked);
+      save();
+      update();
+    });
+    box.classList.toggle("done", check.checked);
+    ans.appendChild(text);
+    ans.appendChild(lab);
+    box.appendChild(sum);
+    box.appendChild(ans);
+    groups[item[0]].appendChild(box);
+  });
+
+  function update() {
+    var n = Object.keys(known).length;
+    document.getElementById("count").textContent = n + " van " + questions.length + " gekend";
+    document.getElementById("bar").style.width = (n / questions.length * 100) + "%";
+  }
+  update();
+
+  document.getElementById("reset").addEventListener("click", function () {
+    known = {};
+    save();
+    quiz.querySelectorAll("input").forEach(function (c) { c.checked = false; });
+    quiz.querySelectorAll(".q").forEach(function (q) { q.classList.remove("done"); q.open = false; });
+    update();
+  });
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function show(id, scroll) {
+    tabs.forEach(function (t) {
+      var on = t.getAttribute("aria-controls") === id;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      if (on && t.scrollIntoView) { t.scrollIntoView({ block: "nearest", inline: "nearest" }); }
+    });
+    if (scroll) { window.scrollTo(0, document.querySelector("nav").offsetTop); }
+    try { localStorage.setItem("sd-tab", id); } catch (e) {}
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener("click", function () { show(t.getAttribute("aria-controls"), true); });
+  });
+  var start = location.hash.slice(1);
+  if (!document.getElementById("t-" + start)) {
+    try { start = localStorage.getItem("sd-tab"); } catch (e) { start = null; }
+  }
+  if (start && document.getElementById("t-" + start)) { show(start, false); }
+})();
+</script>
+
+</html>
